@@ -1,0 +1,109 @@
+{% unless current_collection == blank %}
+{% assign current_collection = collection %}
+{% endunless %}
+
+{% assign on_sale = false %}
+{% assign sale_text = 'products.product.sale' | t %}
+{% if product.compare_at_price > product.price %}
+{% assign on_sale = true %}
+{% endif %}
+
+{% assign sold_out = true %}
+{% assign sold_out_text = 'products.product.sold_out' | t %}
+{% if product.available %}
+{% assign sold_out = false %}
+{% endif %}
+
+<div id="product-{{ product.id }}"  class="product-inner{% if sold_out %} sold-out{% endif %}{% if on_sale %} on-sale{% endif %}">
+  <div class="row">
+    <div class="col-md-4 col-sm-4">
+      <a href="{{ product.url | within: collection }}" class="product-img">
+
+        {% if on_sale and settings.collections_show_sale_circle %}
+        <span class="label label-sale">{{ 'products.product.sale' | t }}</span>
+        {% endif %}
+
+        {% if sold_out and settings.collections_show_sold_out_circle %}
+        <span class="label label-soldout">{{ 'products.product.sold_out' | t }}</span>
+        {% endif %}
+
+        <img src="{{ product.featured_image.src | img_url: 'grande' }}" alt="{{ product.featured_image.alt | escape }}">
+      </a>
+    </div>
+
+    <div class="col-md-8 col-sm-8">
+      <div class="product-info"> 
+        <a href="{{ product.url | within: collection }}" title="{{ product.title }}" class="product-name">{{ product.title }}</a>
+        <div class="review">
+          <span class="shopify-product-reviews-badge" data-id="{{ product.id }}"></span>
+        </div>
+
+        {% if settings.collections_vendor_enable %}
+        <p class="vendor">{{ product.vendor }}</p>
+        {% endif %}
+
+        <div class="price-box">
+          <span class="price">
+            {% if on_sale %}
+            {% if product.price_varies %}
+            {% assign sale_price = product.price | money %}
+            <span class="sale-price">{{ 'products.product.on_sale_from_html' | t: price: sale_price }}</span>
+            {% else %}
+            {{ product.price | money }}
+            {% endif %}
+
+            {% else %}
+
+            {% if product.price_varies %}
+            {% assign price = product.price | money %}
+            {{ 'products.general.from_text_html' | t: price: price }}
+            {% else %} 
+            {{ product.price | money }}
+            {% endif %}
+            {% endif %}
+          </span>
+
+          {% if sold_out %}
+          <br><strong>{{ 'products.product.sold_out' | t }}</strong> 
+          {% endif %}
+
+          {% if on_sale %} 
+          <span class="visually-hidden">{{ 'products.general.regular_price' | t }}</span>
+          <span class="old-price">{{ product.compare_at_price | money }}</span>
+          {% endif %}
+        </div>
+
+        <div class="des">
+          {{product.description | strip_html | truncatewords: 50}}
+        </div>
+        
+        <div class="p-actions">
+          <div class="action">    
+            <form action="/cart/add" method="post" class="variants" id="AddToCartForm-{{ product.id }}" enctype="multipart/form-data">    
+              {% if sold_out %}
+               <a class="btn-select-option" href="{{product.url}}" title="{{ 'products.product.sold_out' | t }}">{{ 'products.product.sold_out' | t }}</a>
+              {% else %}
+
+              {% if product.available and product.variants.size > 1 %}
+              <strong class="btn-select-option">{{ 'products.product.select_options' | t }}</strong>
+
+             
+              {% else %}      
+              <input type="hidden" name="id" value="{{ product.variants[0].id }}" />           
+              <a class="btn btn-addToCart btn-primary" href="javascript:void(0)" title="{{ 'products.product.add_to_cart' | t }}">{{ 'products.product.add_to_cart' | t }}</a>
+              {% endif %}
+
+              {% endif %}
+            </form>  
+
+          </div>
+          {% include 'add-to-wishlist' %}
+          <a class="btn-quickview sca-qv-button" href="javascript:void(0)" id="{{ product.handle }}" title="{{ 'products.product.quickview' | t }}"><i class='icon-zoom'></i></a>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
